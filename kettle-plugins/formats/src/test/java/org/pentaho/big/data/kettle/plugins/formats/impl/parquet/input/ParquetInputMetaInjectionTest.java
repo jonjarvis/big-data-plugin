@@ -22,6 +22,7 @@
 
 package org.pentaho.big.data.kettle.plugins.formats.impl.parquet.input;
 
+import static org.mockito.Mockito.mock;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -29,8 +30,7 @@ import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.di.core.injection.BaseMetadataInjectionTest;
 import org.pentaho.di.core.row.value.ValueMetaBase;
-
-import static org.mockito.Mockito.mock;
+import org.pentaho.hadoop.shim.api.format.ParquetSpec;
 
 public class ParquetInputMetaInjectionTest extends BaseMetadataInjectionTest<ParquetInputMeta> {
 
@@ -38,34 +38,39 @@ public class ParquetInputMetaInjectionTest extends BaseMetadataInjectionTest<Par
   public void setup() {
     NamedClusterService namedClusterService = mock( NamedClusterService.class );
     NamedClusterServiceLocator namedClusterServiceLocator = mock( NamedClusterServiceLocator.class );
-    setup( new ParquetInputMeta( namedClusterServiceLocator,
-      namedClusterService ) );
+    setup( new ParquetInputMeta( namedClusterServiceLocator, namedClusterService ) );
   }
 
   @Test
   public void test() throws Exception {
     check( "FILENAME", new StringGetter() {
       public String get() {
-        return meta.inputFiles.fileName[ 0 ];
+        return meta.inputFiles.fileName[0];
       }
     } );
 
     check( "FIELD_NAME", new StringGetter() {
       public String get() {
-        return meta.inputFields[ 0 ].getPentahoFieldName();
+        return meta.inputFields[0].getPentahoFieldName();
       }
     } );
+
+    check( "PARQUET_TYPE", new StringGetter() {
+      public String get() {
+        return meta.inputFields[0].getParquetType().getName();
+      }
+    }, ParquetSpec.DataType.getDisplayableTypeNames() );
 
     String[] typeNames = ValueMetaBase.getAllTypes();
     checkStringToInt( "FIELD_TYPE", new IntGetter() {
       public int get() {
-        return meta.inputFields[ 0 ].getPentahoType();
+        return meta.inputFields[0].getPentahoType();
       }
     }, typeNames, getTypeCodes( typeNames ) );
 
     check( "FIELD_PATH", new StringGetter() {
       public String get() {
-        return meta.inputFields[ 0 ].getFormatFieldName();
+        return meta.inputFields[0].getFormatFieldName();
       }
     } );
   }
